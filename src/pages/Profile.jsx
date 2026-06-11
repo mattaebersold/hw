@@ -17,6 +17,14 @@ export default function Profile() {
   const [selected, setSelected] = useState(null);
 
   const isOwn = currentUser && currentUser._id === id;
+  const navigate = useNavigate();
+
+  const handleDeleteListing = async (e, listingId) => {
+    e.stopPropagation();
+    if (!window.confirm('Delete this listing?')) return;
+    await api.delete(`/listings/${listingId}`);
+    setListings(prev => prev.filter(l => l._id !== listingId));
+  };
 
   useEffect(() => {
     api.get(`/users/${id}`).then(res => {
@@ -147,7 +155,18 @@ export default function Profile() {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {listings.map(l => (
-              <ListingCard key={l._id} listing={l} onClick={() => setSelected(l)} />
+              <div key={l._id} className="relative group/wrap">
+                <ListingCard listing={l} onClick={() => setSelected(l)} />
+                {isOwn && (
+                  <button
+                    onClick={e => handleDeleteListing(e, l._id)}
+                    className="absolute top-2 right-2 w-7 h-7 bg-gray-900/90 hover:bg-red-700 text-gray-400 hover:text-white rounded-full flex items-center justify-center text-xs opacity-0 group-hover/wrap:opacity-100 transition-all"
+                    title="Delete listing"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
             ))}
           </div>
         )}

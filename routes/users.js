@@ -38,7 +38,7 @@ router.patch('/me', requireAuth, async (req, res) => {
 router.post('/me/photo', requireAuth, upload.single('photo'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'No file provided' });
-    const url = await uploadToS3(req.file, `profiles/${req.user._id}`);
+    const url = await uploadToS3(req.file);
     const user = await User.findByIdAndUpdate(
       req.user._id,
       { profilePhoto: url, profilePhotoIsCustom: true },

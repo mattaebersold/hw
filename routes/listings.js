@@ -109,7 +109,7 @@ router.post('/:id/photos', requireAuth, upload.single('photo'), async (req, res)
     if (!listing) return res.status(404).json({ error: 'Not found' });
     if (!listing.seller.equals(req.user._id)) return res.status(403).json({ error: 'Forbidden' });
     if (!req.file) return res.status(400).json({ error: 'No file' });
-    const url = await uploadToS3(req.file, `listings/${listing._id}`);
+    const url = await uploadToS3(req.file);
     listing.photos.push(url);
     await listing.save();
     res.json({ listing });

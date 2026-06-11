@@ -1,6 +1,5 @@
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
-const { randomUUID } = require('crypto');
-const path = require('path');
+const sharp = require('sharp');
 
 const s3 = new S3Client({
   region: process.env.AWS_REGION || 'us-east-1',
@@ -10,15 +9,29 @@ const s3 = new S3Client({
   },
 });
 
-const uploadToS3 = async (file, prefix) => {
-  const ext = path.extname(file.originalname) || '.jpg';
-  const key = `hotwheels/${prefix}/${randomUUID()}${ext}`;
+const generateKey = () => {
+  const digits = Math.floor(Math.random() * 9000 + 1000);
+  const chars = Math.random().toString(36).substring(2, 10);
+  return `img${digits}-${chars}.jpg`;
+};
+
+const processImage = async (buffer, maxDimension = 2000) => {
+  return sharp(buffer)
+    .rotate()                         // auto-rotate from EXIF orientation
+    .resize(maxDimension, maxDimension, { fit: 'inside', withoutEnlargement: true })
+    .jpeg({ quality: 85, progressive: true })
+    .toBuffer();
+};
+
+const uploadToS3 = async (file) => {
+  const processed = await processImage(file.buffer);
+  const key = generateKey();
 
   await s3.send(new PutObjectCommand({
     Bucket: process.env.S3_BUCKET,
     Key: key,
-    Body: file.buffer,
-    ContentType: file.mimetype,
+    Body: processed,
+    ContentType: 'image/jpeg',
   }));
 
   return `https://${process.env.S3_BUCKET}.s3.${process.env.AWS_REGION || 'us-east-1'}.amazonaws.com/${key}`;
