@@ -1,11 +1,12 @@
 import { useRef, useState, useEffect } from 'react';
 
 export default function PhotoCapture({ onCapture }) {
-  const inputRef = useRef(null);
+  const cameraRef = useRef(null);
+  const libraryRef = useRef(null);
   const [preview, setPreview] = useState(null);
   const [file, setFile] = useState(null);
 
-  useEffect(() => { inputRef.current?.click(); }, []);
+  useEffect(() => { cameraRef.current?.click(); }, []);
 
   const handleFile = (f) => {
     if (!f) return;
@@ -34,7 +35,7 @@ export default function PhotoCapture({ onCapture }) {
         </div>
       ) : (
         <div
-          onClick={() => inputRef.current?.click()}
+          onClick={() => cameraRef.current?.click()}
           onDrop={handleDrop}
           onDragOver={e => e.preventDefault()}
           className="border-2 border-dashed border-gray-700 hover:border-gray-500 rounded-xl p-12 text-center cursor-pointer transition-colors group"
@@ -45,18 +46,12 @@ export default function PhotoCapture({ onCapture }) {
         </div>
       )}
 
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*"
-        capture="environment"
-        onChange={handleChange}
-        className="hidden"
-      />
+      <input ref={cameraRef} type="file" accept="image/*" capture="environment" onChange={handleChange} className="hidden" />
+      <input ref={libraryRef} type="file" accept="image/*" onChange={handleChange} className="hidden" />
 
       {!preview && (
         <button
-          onClick={() => inputRef.current?.click()}
+          onClick={() => libraryRef.current?.click()}
           className="w-full bg-gray-800 border border-gray-700 hover:border-gray-500 text-gray-300 text-sm py-2.5 rounded-xl transition-colors"
         >
           Choose from library

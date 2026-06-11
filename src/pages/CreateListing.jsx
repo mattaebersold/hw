@@ -1,13 +1,9 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import PhotoCapture from '../components/PhotoCapture';
-import AiDraftForm from '../components/AiDraftForm';
-import { Link } from 'react-router-dom';
 import api, { serverUrl } from '../services/api';
 import axios from 'axios';
-
-const STEPS = ['photo', 'draft'];
 
 export default function CreateListing() {
   const { user, loading } = useAuth();
@@ -16,8 +12,9 @@ export default function CreateListing() {
   const [analyzing, setAnalyzing] = useState(false);
   const [analyzeError, setAnalyzeError] = useState(null);
   const [capturedFile, setCapturedFile] = useState(null);
-  const [draft, setDraft] = useState({});
-  const [saving, setSaving] = useState(false);
+  const [ai, setAi] = useState(null);
+  const [price, setPrice] = useState('');
+  const [publishing, setPublishing] = useState(false);
 
   if (!loading && !user) {
     return (
@@ -39,8 +36,22 @@ export default function CreateListing() {
       const formData = new FormData();
       formData.append('photo', file);
       const res = await axios.post(`${serverUrl}/api/analyze-photo`, formData, { withCredentials: true });
-      const ai = res.data.result;
-      setDraft({
+      const result = res.data.result;
+      setAi(result);
+      setPrice(result.estimatedValueHigh ? String(Math.ceil(result.estimatedValueHigh * 0.9)) : '');
+      setStep('confirm');
+    } catch (err) {
+      setAnalyzeError(err.response?.data?.error || 'AI analysis failed. Please try again.');
+    } finally {
+      setAnalyzing(false);
+    }
+  };
+
+  const handlePublish = async () => {
+    if (!price) return alert('Please set a price.');
+    setPublishing(true);
+    try {
+      const res = await api.post('/listings', {
         title: ai.suggestedTitle || '',
         description: ai.suggestedDescription || '',
         brand: ai.brand || '',
@@ -54,58 +65,37 @@ export default function CreateListing() {
         estimatedValueLow: ai.estimatedValueLow,
         estimatedValueHigh: ai.estimatedValueHigh,
         aiNotes: ai.aiNotes || '',
-        price: ai.estimatedValueHigh ? Math.ceil(ai.estimatedValueHigh * 0.9) : '',
+        price: Number(price),
+        status: 'published',
       });
-      setStep('draft');
-    } catch (err) {
-      setAnalyzeError(err.response?.data?.error || 'AI analysis failed. Please try again.');
-    } finally {
-      setAnalyzing(false);
-    }
-  };
-
-  const handleSaveDraft = async () => {
-    if (!draft.title) return alert('Please add a title.');
-    if (!draft.price) return alert('Please set a price.');
-    setSaving(true);
-    try {
-      const res = await api.post('/listings', { ...draft, status: 'draft' });
       const listingId = res.data.listing._id;
 
-      // Upload the photo
       if (capturedFile) {
         const formData = new FormData();
         formData.append('photo', capturedFile);
         await axios.post(`${serverUrl}/api/listings/${listingId}/photos`, formData, { withCredentials: true });
       }
 
-      navigate(`/listings/${listingId}/edit`);
+      navigate(`/profile/${user._id}`);
     } catch (err) {
-      alert(err.response?.data?.error || 'Save failed. Please try again.');
+      alert(err.response?.data?.error || 'Publish failed. Please try again.');
     } finally {
-      setSaving(false);
+      setPublishing(false);
     }
   };
 
   return (
     <div className="max-w-xl mx-auto">
       <h1 className="text-2xl font-bold text-white mb-2">List a Car</h1>
-      <p className="text-gray-400 text-sm mb-8">Take or upload a photo — AI will identify and pre-fill the details.</p>
-
-      {/* Step indicator */}
-      <div className="flex gap-2 mb-8">
-        {STEPS.map((s, i) => (
-          <div key={s} className={`h-1 flex-1 rounded-full transition-colors ${step === s || STEPS.indexOf(step) > i ? 'bg-red-500' : 'bg-gray-800'}`} />
-        ))}
-      </div>
+      <p className="text-gray-400 text-sm mb-8">Take or upload a photo — AI will identify and fill in the details.</p>
 
       {step === 'photo' && (
-        <div>
+        <>
           {analyzing ? (
             <div className="text-center py-16 space-y-4">
               <div className="text-5xl animate-bounce">🔍</div>
               <p className="text-white font-medium">Analyzing your car…</p>
-              <p className="text-gray-400 text-sm">GPT-4o is identifying the make, model, series, and condition</p>
+              <p className="text-gray-400 text-sm">GPT-4o is identifying make, model, series, and condition</p>
             </div>
           ) : (
             <>
@@ -113,29 +103,71 @@ export default function CreateListing() {
               {analyzeError && <p className="text-red-400 text-sm mt-3 text-center">{analyzeError}</p>}
             </>
           )}
-        </div>
+        </>
       )}
 
-      {step === 'draft' && (
-        <div className="space-y-6">
+      {step === 'confirm' && ai && (
+        <div className="space-y-5">
           <div className="flex items-center justify-between">
-            <p className="text-green-400 text-sm font-medium">✓ AI analysis complete — review and edit below</p>
-            <button onClick={() => setStep('photo')} className="text-gray-400 hover:text-white text-sm transition-colors">← Retake</button>
+            <p className="text-green-400 text-sm font-medium">✓ AI analysis complete</p>
+            <button onClick={() => { setStep('photo'); setAi(null); }} className="text-gray-400 hover:text-white text-sm transition-colors">← Retake</button>
           </div>
 
-          <AiDraftForm data={draft} onChange={setDraft} />
+          {/* AI summary */}
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 space-y-3">
+            <p className="text-white font-semibold">{ai.suggestedTitle}</p>
 
-          <div className="flex gap-3 pt-2">
-            <button
-              onClick={handleSaveDraft}
-              disabled={saving}
-              className="flex-1 bg-gray-700 hover:bg-gray-600 disabled:opacity-60 text-white font-medium py-3 rounded-xl transition-colors"
-            >
-              {saving ? 'Saving…' : 'Save as Draft'}
-            </button>
+            <div className="flex flex-wrap gap-2">
+              {ai.brand && <Chip>{ai.brand}</Chip>}
+              {ai.condition && <Chip>{ai.condition}</Chip>}
+              {ai.rarity && <Chip>{ai.rarity}</Chip>}
+              {ai.isLimitedEdition && <Chip red>Limited Edition</Chip>}
+            </div>
+
+            {ai.suggestedDescription && (
+              <p className="text-gray-400 text-sm leading-relaxed">{ai.suggestedDescription}</p>
+            )}
+
+            {(ai.estimatedValueLow || ai.estimatedValueHigh) && (
+              <p className="text-gray-500 text-xs">AI value estimate: ${ai.estimatedValueLow}–${ai.estimatedValueHigh}</p>
+            )}
+
+            {ai.aiNotes && (
+              <p className="text-gray-500 text-xs border-t border-gray-800 pt-3">{ai.aiNotes}</p>
+            )}
           </div>
+
+          {/* Price */}
+          <div>
+            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Your Price ($) *</label>
+            <input
+              type="number"
+              min={0}
+              step={0.01}
+              value={price}
+              onChange={e => setPrice(e.target.value)}
+              placeholder="0.00"
+              className="w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm rounded-xl px-3 py-2.5 focus:outline-none focus:border-gray-500 placeholder-gray-500"
+            />
+          </div>
+
+          <button
+            onClick={handlePublish}
+            disabled={publishing}
+            className="w-full bg-red-600 hover:bg-red-500 disabled:opacity-60 text-white font-medium py-3 rounded-xl transition-colors"
+          >
+            {publishing ? 'Publishing…' : 'Publish Listing'}
+          </button>
         </div>
       )}
     </div>
+  );
+}
+
+function Chip({ children, red }) {
+  return (
+    <span className={`text-xs px-2.5 py-0.5 rounded-full ${red ? 'bg-red-900 text-red-300' : 'bg-gray-800 text-gray-400'}`}>
+      {children}
+    </span>
   );
 }

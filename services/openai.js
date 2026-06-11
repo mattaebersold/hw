@@ -28,7 +28,7 @@ Analyze the provided photo and return ONLY valid JSON (no markdown, no prose) wi
   "estimatedValueLow": estimated low value in USD as a number,
   "estimatedValueHigh": estimated high value in USD as a number,
   "suggestedTitle": "concise marketplace listing title including brand (e.g. Hot Wheels 2019 Super Treasure Hunt Ford Mustang GT500)",
-  "suggestedDescription": "2-3 sentences describing the car for a marketplace listing",
+  "suggestedDescription": "2-3 plain sentences stating the facts: what it is, the series if known, the condition, and whether it is still in packaging. No marketing language.",
   "aiNotes": "any notable facts: variant details, error cards, production numbers, desirability factors, how brand was identified, or caveats about the identification"
 }
 
