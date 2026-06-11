@@ -86,16 +86,15 @@ export default function CreateListing() {
 
   return (
     <div className="max-w-xl mx-auto">
-      <h1 className="text-2xl font-bold text-white mb-2">List a Car</h1>
-      <p className="text-gray-400 text-sm mb-8">Take or upload a photo — AI will identify and fill in the details.</p>
+      <h1 className="text-2xl font-bold text-white mb-2">List</h1>
+      <p className="text-gray-400 text-sm mb-8">Take or upload a photo</p>
 
       {step === 'photo' && (
         <>
           {analyzing ? (
             <div className="text-center py-16 space-y-4">
               <div className="text-5xl animate-bounce">🔍</div>
-              <p className="text-white font-medium">Analyzing your car…</p>
-              <p className="text-gray-400 text-sm">GPT-4o is identifying make, model, series, and condition</p>
+              <p className="text-white font-medium">Analyzing...</p>
             </div>
           ) : (
             <>
@@ -109,7 +108,7 @@ export default function CreateListing() {
       {step === 'confirm' && ai && (
         <div className="space-y-5">
           <div className="flex items-center justify-between">
-            <p className="text-green-400 text-sm font-medium">✓ AI analysis complete</p>
+            <p className="text-green-400 text-sm font-medium">Complete</p>
             <button onClick={() => { setStep('photo'); setAi(null); }} className="text-gray-400 hover:text-white text-sm transition-colors">← Retake</button>
           </div>
 

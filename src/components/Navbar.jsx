@@ -17,7 +17,7 @@ export default function Navbar() {
               <Link
                 to="/create"
                 className="w-9 h-9 bg-red-600 hover:bg-red-500 text-white rounded-full flex items-center justify-center text-xl font-bold leading-none transition-colors"
-                title="List a car"
+                title="List"
               >
                 +
               </Link>
