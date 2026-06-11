@@ -2,13 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export default function Navbar() {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
-
-  const handleLogout = async () => {
-    await logout();
-    navigate('/');
-  };
+  const { user } = useAuth();
 
   return (
     <nav className="bg-gray-900 border-b border-gray-800 sticky top-0 z-40">
@@ -22,9 +16,10 @@ export default function Navbar() {
             <>
               <Link
                 to="/create"
-                className="bg-red-600 hover:bg-red-500 text-white text-sm font-medium px-4 py-2 rounded-xl transition-colors"
+                className="w-9 h-9 bg-red-600 hover:bg-red-500 text-white rounded-full flex items-center justify-center text-xl font-bold leading-none transition-colors"
+                title="List a car"
               >
-                + List a Car
+                +
               </Link>
               <Link to={`/profile/${user._id}`} className="flex items-center gap-2 group">
                 <img
@@ -34,12 +29,6 @@ export default function Navbar() {
                 />
                 <span className="text-sm text-gray-300 group-hover:text-white hidden sm:inline transition-colors">{user.name}</span>
               </Link>
-              <button
-                onClick={handleLogout}
-                className="text-sm text-gray-400 hover:text-white transition-colors"
-              >
-                Sign out
-              </button>
             </>
           ) : (
             <Link

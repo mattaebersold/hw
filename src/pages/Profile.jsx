@@ -8,7 +8,7 @@ import api from '../services/api';
 
 export default function Profile() {
   const { id } = useParams();
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, logout } = useAuth();
   const [profile, setProfile] = useState(null);
   const [listings, setListings] = useState([]);
   const [editing, setEditing] = useState(false);
@@ -58,12 +58,20 @@ export default function Profile() {
             <div className="flex items-center justify-between flex-wrap gap-2">
               <h1 className="text-2xl font-bold text-white">{profile.name}</h1>
               {isOwn && !editing && (
-                <button
-                  onClick={() => setEditing(true)}
-                  className="text-sm text-gray-400 hover:text-white border border-gray-700 hover:border-gray-500 px-3 py-1.5 rounded-xl transition-colors"
-                >
-                  Edit profile
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setEditing(true)}
+                    className="text-sm text-gray-400 hover:text-white border border-gray-700 hover:border-gray-500 px-3 py-1.5 rounded-xl transition-colors"
+                  >
+                    Edit profile
+                  </button>
+                  <button
+                    onClick={async () => { await logout(); navigate('/'); }}
+                    className="text-sm text-gray-400 hover:text-white border border-gray-700 hover:border-gray-500 px-3 py-1.5 rounded-xl transition-colors"
+                  >
+                    Sign out
+                  </button>
+                </div>
               )}
             </div>
 
