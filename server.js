@@ -10,6 +10,8 @@ require('./config/passport');
 
 const app = express();
 
+app.set('trust proxy', 1); // required behind Render's reverse proxy for secure cookies
+
 connectDB();
 
 app.use(express.json());
@@ -22,6 +24,7 @@ app.use(session({
   store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
   cookie: {
     secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000,
   },
 }));
