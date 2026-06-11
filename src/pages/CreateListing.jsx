@@ -2,8 +2,26 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import PhotoCapture from '../components/PhotoCapture';
+import AiDraftForm from '../components/AiDraftForm';
 import api, { serverUrl } from '../services/api';
 import axios from 'axios';
+
+const aiToDraft = (ai) => ({
+  title: ai.suggestedTitle || '',
+  description: ai.suggestedDescription || '',
+  brand: ai.brand || '',
+  make: ai.make || '',
+  model: ai.model || '',
+  series: ai.series || '',
+  year: ai.year || '',
+  condition: ai.condition || '',
+  rarity: ai.rarity || '',
+  isLimitedEdition: ai.isLimitedEdition || false,
+  estimatedValueLow: ai.estimatedValueLow,
+  estimatedValueHigh: ai.estimatedValueHigh,
+  aiNotes: ai.aiNotes || '',
+  price: ai.estimatedValueHigh ? String(Math.ceil(ai.estimatedValueHigh * 0.9)) : '',
+});
 
 export default function CreateListing() {
   const { user, loading } = useAuth();
@@ -12,8 +30,8 @@ export default function CreateListing() {
   const [analyzing, setAnalyzing] = useState(false);
   const [analyzeError, setAnalyzeError] = useState(null);
   const [capturedFile, setCapturedFile] = useState(null);
-  const [ai, setAi] = useState(null);
-  const [price, setPrice] = useState('');
+  const [ebayInfo, setEbayInfo] = useState(null);
+  const [draft, setDraft] = useState({});
   const [publishing, setPublishing] = useState(false);
 
   if (!loading && !user) {
@@ -37,8 +55,14 @@ export default function CreateListing() {
       formData.append('photo', file);
       const res = await axios.post(`${serverUrl}/api/analyze-photo`, formData, { withCredentials: true });
       const result = res.data.result;
-      setAi(result);
-      setPrice(result.estimatedValueHigh ? String(Math.ceil(result.estimatedValueHigh * 0.9)) : '');
+      setDraft(aiToDraft(result));
+      setEbayInfo(result.ebayListingCount ? {
+        low: result.estimatedValueLow,
+        high: result.estimatedValueHigh,
+        avg: result.ebayAvgPrice,
+        count: result.ebayListingCount,
+        query: result.ebayQuery,
+      } : null);
       setStep('confirm');
     } catch (err) {
       setAnalyzeError(err.response?.data?.error || 'AI analysis failed. Please try again.');
@@ -48,26 +72,11 @@ export default function CreateListing() {
   };
 
   const handlePublish = async () => {
-    if (!price) return alert('Please set a price.');
+    if (!draft.title) return alert('Please add a title.');
+    if (!draft.price) return alert('Please set a price.');
     setPublishing(true);
     try {
-      const res = await api.post('/listings', {
-        title: ai.suggestedTitle || '',
-        description: ai.suggestedDescription || '',
-        brand: ai.brand || '',
-        make: ai.make || '',
-        model: ai.model || '',
-        series: ai.series || '',
-        year: ai.year || '',
-        condition: ai.condition || '',
-        rarity: ai.rarity || '',
-        isLimitedEdition: ai.isLimitedEdition || false,
-        estimatedValueLow: ai.estimatedValueLow,
-        estimatedValueHigh: ai.estimatedValueHigh,
-        aiNotes: ai.aiNotes || '',
-        price: Number(price),
-        status: 'published',
-      });
+      const res = await api.post('/listings', { ...draft, price: Number(draft.price), status: 'published' });
       const listingId = res.data.listing._id;
 
       if (capturedFile) {
@@ -86,15 +95,16 @@ export default function CreateListing() {
 
   return (
     <div className="max-w-xl mx-auto">
-      <h1 className="text-2xl font-bold text-white mb-2">List</h1>
-      <p className="text-gray-400 text-sm mb-8">Take or upload a photo</p>
+      <h1 className="text-2xl font-bold text-white mb-2">List a Car</h1>
+      <p className="text-gray-400 text-sm mb-8">Take or upload a photo — AI will identify and pre-fill the details.</p>
 
       {step === 'photo' && (
         <>
           {analyzing ? (
             <div className="text-center py-16 space-y-4">
               <div className="text-5xl animate-bounce">🔍</div>
-              <p className="text-white font-medium">Analyzing...</p>
+              <p className="text-white font-medium">Analyzing…</p>
+              <p className="text-gray-400 text-sm">Identifying make, model, series, and condition</p>
             </div>
           ) : (
             <>
@@ -105,50 +115,26 @@ export default function CreateListing() {
         </>
       )}
 
-      {step === 'confirm' && ai && (
-        <div className="space-y-5">
+      {step === 'confirm' && (
+        <div className="space-y-6">
           <div className="flex items-center justify-between">
-            <p className="text-green-400 text-sm font-medium">Complete</p>
-            <button onClick={() => { setStep('photo'); setAi(null); }} className="text-gray-400 hover:text-white text-sm transition-colors">← Retake</button>
+            <p className="text-green-400 text-sm font-medium">✓ AI analysis complete — edit anything below</p>
+            <button
+              onClick={() => { setStep('photo'); setDraft({}); setEbayInfo(null); }}
+              className="text-gray-400 hover:text-white text-sm transition-colors"
+            >
+              ← Retake
+            </button>
           </div>
 
-          {/* AI summary */}
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 space-y-3">
-            <p className="text-white font-semibold">{ai.suggestedTitle}</p>
-
-            <div className="flex flex-wrap gap-2">
-              {ai.brand && <Chip>{ai.brand}</Chip>}
-              {ai.condition && <Chip>{ai.condition}</Chip>}
-              {ai.rarity && <Chip>{ai.rarity}</Chip>}
-              {ai.isLimitedEdition && <Chip red>Limited Edition</Chip>}
+          {ebayInfo && (
+            <div className="bg-gray-800/60 border border-gray-700 rounded-xl px-4 py-3 text-xs text-gray-400">
+              eBay reference: <span className="text-white">${ebayInfo.low}–${ebayInfo.high}</span>
+              <span className="text-gray-500"> ({ebayInfo.count} active listings, avg ${ebayInfo.avg})</span>
             </div>
+          )}
 
-            {ai.suggestedDescription && (
-              <p className="text-gray-400 text-sm leading-relaxed">{ai.suggestedDescription}</p>
-            )}
-
-            {(ai.estimatedValueLow || ai.estimatedValueHigh) && (
-              <p className="text-gray-500 text-xs">AI value estimate: ${ai.estimatedValueLow}–${ai.estimatedValueHigh}</p>
-            )}
-
-            {ai.aiNotes && (
-              <p className="text-gray-500 text-xs border-t border-gray-800 pt-3">{ai.aiNotes}</p>
-            )}
-          </div>
-
-          {/* Price */}
-          <div>
-            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Your Price ($) *</label>
-            <input
-              type="number"
-              min={0}
-              step={0.01}
-              value={price}
-              onChange={e => setPrice(e.target.value)}
-              placeholder="0.00"
-              className="w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm rounded-xl px-3 py-2.5 focus:outline-none focus:border-gray-500 placeholder-gray-500"
-            />
-          </div>
+          <AiDraftForm data={draft} onChange={setDraft} />
 
           <button
             onClick={handlePublish}
@@ -160,13 +146,5 @@ export default function CreateListing() {
         </div>
       )}
     </div>
-  );
-}
-
-function Chip({ children, red }) {
-  return (
-    <span className={`text-xs px-2.5 py-0.5 rounded-full ${red ? 'bg-red-900 text-red-300' : 'bg-gray-800 text-gray-400'}`}>
-      {children}
-    </span>
   );
 }

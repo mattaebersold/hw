@@ -68,7 +68,7 @@ router.get('/:id', async (req, res) => {
 // POST /api/listings — create (auth required)
 router.post('/', requireAuth, async (req, res) => {
   try {
-    const listing = await Listing.create({ ...req.body, seller: req.user._id, status: 'draft' });
+    const listing = await Listing.create({ ...req.body, seller: req.user._id });
     res.status(201).json({ listing });
   } catch (err) {
     res.status(400).json({ error: err.message });

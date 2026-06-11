@@ -1,6 +1,6 @@
 const CONDITIONS = ['Mint in Box', 'Near Mint', 'Good', 'Fair', 'Poor'];
 const RARITIES = ['Common', 'Uncommon', 'Rare', 'Super Rare', 'Ultra Rare'];
-const BRANDS = ['Hot Wheels', 'Matchbox', 'Johnny Lightning', 'Majorette', 'Other'];
+const BRANDS = ['Hot Wheels', 'Matchbox', 'Johnny Lightning', 'Majorette', 'Greenlight', 'M2 Machines', 'Auto World', 'Other'];
 
 export default function AiDraftForm({ data, onChange }) {
   const field = (key) => ({

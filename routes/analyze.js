@@ -3,6 +3,7 @@ const multer = require('multer');
 const sharp = require('sharp');
 const { requireAuth } = require('../middleware/auth');
 const { analyzeCarPhoto } = require('../services/openai');
+const { searchPrices } = require('../services/ebay');
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -22,7 +23,23 @@ router.post('/', requireAuth, upload.single('photo'), async (req, res) => {
       .resize(512, 512, { fit: 'inside', withoutEnlargement: true })
       .jpeg({ quality: 80 })
       .toBuffer();
-    const result = await analyzeCarPhoto(resized, 'image/jpeg');
+
+    const aiResult = await analyzeCarPhoto(resized, 'image/jpeg');
+
+    // Fetch eBay prices in parallel after we have the AI identification
+    const ebayPrices = await searchPrices(aiResult).catch(() => null);
+
+    const result = {
+      ...aiResult,
+      ...(ebayPrices && {
+        estimatedValueLow: ebayPrices.low,
+        estimatedValueHigh: ebayPrices.high,
+        ebayAvgPrice: ebayPrices.avg,
+        ebayListingCount: ebayPrices.count,
+        ebayQuery: ebayPrices.query,
+      }),
+    };
+
     res.json({ result });
   } catch (err) {
     if (err instanceof SyntaxError) {
