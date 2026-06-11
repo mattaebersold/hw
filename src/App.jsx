@@ -5,6 +5,7 @@ import Login from './pages/Login';
 import CreateListing from './pages/CreateListing';
 import EditListing from './pages/EditListing';
 import Profile from './pages/Profile';
+import Users from './pages/Users';
 import DeleteData from './pages/DeleteData';
 
 export default function App() {
@@ -18,6 +19,7 @@ export default function App() {
           <Route path="/create" element={<CreateListing />} />
           <Route path="/listings/:id/edit" element={<EditListing />} />
           <Route path="/profile/:id" element={<Profile />} />
+          <Route path="/users" element={<Users />} />
           <Route path="/deleteData" element={<DeleteData />} />
         </Routes>
       </main>

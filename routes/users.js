@@ -7,6 +7,23 @@ const { uploadToS3 } = require('../services/s3');
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 
+// All users (public)
+router.get('/', async (req, res) => {
+  try {
+    const users = await User.find().select('name profilePhoto createdAt').sort({ createdAt: -1 });
+    const ids = users.map(u => u._id);
+    const counts = await Listing.aggregate([
+      { $match: { seller: { $in: ids }, status: 'published' } },
+      { $group: { _id: '$seller', count: { $sum: 1 } } },
+    ]);
+    const countMap = Object.fromEntries(counts.map(c => [c._id.toString(), c.count]));
+    const result = users.map(u => ({ ...u.toObject(), listingCount: countMap[u._id.toString()] || 0 }));
+    res.json({ users: result });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Public profile
 router.get('/:id', async (req, res) => {
   try {

@@ -80,12 +80,12 @@ export default function AiDraftForm({ data, onChange }) {
         <span className="text-sm text-gray-300">Limited Edition</span>
       </label>
 
-      {data.aiNotes && (
+      {/* {data.aiNotes && (
         <div className="bg-gray-800/60 border border-gray-700 rounded-xl p-4">
           <p className="text-xs text-gray-400 font-medium mb-1">AI Notes</p>
           <p className="text-gray-300 text-sm">{data.aiNotes}</p>
         </div>
-      )}
+      )} */}
     </div>
   );
 }

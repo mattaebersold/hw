@@ -116,12 +116,12 @@ export default function ListingModal({ listing, onClose }) {
             {listing.description && (
               <p className="text-gray-300 text-sm leading-relaxed">{listing.description}</p>
             )}
-            {listing.aiNotes && (
+            {/* {listing.aiNotes && (
               <div className="bg-gray-800 rounded-xl p-3">
                 <p className="text-xs text-gray-400 font-medium mb-1">AI Notes</p>
                 <p className="text-gray-300 text-sm">{listing.aiNotes}</p>
               </div>
-            )}
+            )} */}
 
             {/* Seller */}
             {listing.seller?.name && (
