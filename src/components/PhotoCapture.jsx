@@ -1,9 +1,11 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 
 export default function PhotoCapture({ onCapture }) {
   const inputRef = useRef(null);
   const [preview, setPreview] = useState(null);
   const [file, setFile] = useState(null);
+
+  useEffect(() => { inputRef.current?.click(); }, []);
 
   const handleFile = (f) => {
     if (!f) return;
@@ -66,7 +68,7 @@ export default function PhotoCapture({ onCapture }) {
           onClick={() => onCapture(file)}
           className="w-full bg-red-600 hover:bg-red-500 text-white font-medium py-3 rounded-xl transition-colors"
         >
-          Analyze with AI →
+          Submit
         </button>
       )}
     </div>
