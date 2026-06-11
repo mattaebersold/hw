@@ -48,7 +48,7 @@ export default function Navbar() {
               to="/login"
               className="text-sm text-gray-400 hover:text-white border border-gray-700 hover:border-gray-500 px-4 py-2 rounded-xl transition-colors"
             >
-              Sign in / Register
+              Sign in
             </Link>
           )}
 
@@ -71,7 +71,7 @@ export default function Navbar() {
                   onClick={close}
                   className="flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-gray-800 transition-colors"
                 >
-                  <span className="text-base">👥</span> Collectors
+                  Users
                 </Link>
               </div>
             )}
