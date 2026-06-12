@@ -1,11 +1,17 @@
-const sgMail = require('@sendgrid/mail');
+const nodemailer = require('nodemailer');
 
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.GMAIL_EMAIL,
+    pass: process.env.GMAIL_PASSWORD,
+  },
+});
 
 const sendContactEmail = async ({ listing, buyerName, buyerEmail, message }) => {
-  const msg = {
+  await transporter.sendMail({
+    from: `HW Marketplace <${process.env.GMAIL_EMAIL}>`,
     to: listing.seller.email,
-    from: process.env.EMAIL_FROM,
     replyTo: buyerEmail,
     subject: `Someone is interested in your listing: ${listing.title}`,
     html: `
@@ -22,14 +28,7 @@ const sendContactEmail = async ({ listing, buyerName, buyerEmail, message }) => 
         <p>Reply directly to this email to respond to ${buyerName} at <a href="mailto:${buyerEmail}">${buyerEmail}</a>.</p>
       </div>
     `,
-  };
-
-  try {
-    await sgMail.send(msg);
-  } catch (err) {
-    const detail = err.response?.body?.errors?.[0]?.message;
-    throw new Error(detail || err.message || 'Email delivery failed');
-  }
+  });
 };
 
 module.exports = { sendContactEmail };
