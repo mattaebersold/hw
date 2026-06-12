@@ -30,8 +30,16 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const toggleWatch = async (listingId) => {
+    if (!user) return;
+    try {
+      const res = await axios.post(`${SERVER}/api/users/me/watchlist/${listingId}`, {}, { withCredentials: true });
+      setUser(u => ({ ...u, watchlist: res.data.watchlist }));
+    } catch {}
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, logout, refreshUser, setUser }}>
+    <AuthContext.Provider value={{ user, loading, logout, refreshUser, setUser, toggleWatch }}>
       {children}
     </AuthContext.Provider>
   );

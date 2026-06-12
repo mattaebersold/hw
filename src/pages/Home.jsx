@@ -3,6 +3,7 @@ import api from '../services/api';
 import ListingCard from '../components/ListingCard';
 import ListingFilters from '../components/ListingFilters';
 import ListingModal from '../components/ListingModal';
+import SearchBar from '../components/SearchBar';
 
 export default function Home() {
   const [listings, setListings] = useState([]);
@@ -32,17 +33,12 @@ export default function Home() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Marketplace</h1>
-          {!loading && <p className="text-gray-400 text-sm mt-0.5">{total} listing{total !== 1 ? 's' : ''}</p>}
-        </div>
-        <button
-          onClick={() => setFiltersOpen(o => !o)}
-          className="lg:hidden flex items-center gap-2 bg-gray-800 border border-gray-700 text-sm text-gray-300 px-4 py-2 rounded-xl hover:border-gray-500 transition-colors"
-        >
-          <span>⚙</span> Filters
-        </button>
+      <div className="mb-6">
+        
+        <SearchBar
+          value={filters.q || ''}
+          onChange={(q) => setFilters(f => ({ ...f, q: q || undefined, page: 1 }))}
+        />
       </div>
 
       <div className="flex gap-8">
@@ -57,8 +53,6 @@ export default function Home() {
             <div className="absolute inset-0 bg-black/60" onClick={() => setFiltersOpen(false)} />
             <div className="relative ml-auto w-72 bg-gray-900 h-full overflow-y-auto p-6 border-l border-gray-800">
               <div className="flex justify-between items-center mb-6">
-                <span className="font-semibold text-white">Filters</span>
-                <button onClick={() => setFiltersOpen(false)} className="text-gray-400 hover:text-white text-xl">✕</button>
               </div>
               <ListingFilters filters={filters} onChange={(f) => { setFilters(f); setFiltersOpen(false); }} />
             </div>

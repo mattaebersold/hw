@@ -3,21 +3,25 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 
+
 const RARITY_COLOR = {
   'Common': 'bg-gray-700 text-gray-300',
   'Uncommon': 'bg-green-900 text-green-300',
   'Rare': 'bg-blue-900 text-blue-300',
   'Super Rare': 'bg-purple-900 text-purple-300',
-  'Ultra Rare': 'bg-yellow-900 text-yellow-300',
+  'Limited Edition': 'bg-yellow-900 text-yellow-300',
 };
 
-export default function ListingModal({ listing, onClose }) {
-  const { user } = useAuth();
+export default function ListingModal({ listing: initialListing, onClose, onSold }) {
+  const { user, toggleWatch } = useAuth();
   const overlayRef = useRef(null);
+  const [listing, setListing] = useState(initialListing);
   const [photoIdx, setPhotoIdx] = useState(0);
-  const [contact, setContact] = useState({ buyerName: user?.name || '', buyerEmail: '', message: '' });
-  const [contactStatus, setContactStatus] = useState('idle'); // idle | sending | sent | error
+  const [message, setMessage] = useState('');
+  const [contactStatus, setContactStatus] = useState('idle');
+  const [markingSold, setMarkingSold] = useState(false);
   const isOwner = user && listing.seller && user._id === (listing.seller._id || listing.seller);
+  const isWatched = user?.watchlist?.some(id => id.toString() === listing._id.toString());
 
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') onClose(); };
@@ -33,14 +37,27 @@ export default function ListingModal({ listing, onClose }) {
     if (e.target === overlayRef.current) onClose();
   };
 
+  const handleMarkSold = async () => {
+    if (!window.confirm('Mark this listing as sold? It will be unpublished.')) return;
+    setMarkingSold(true);
+    try {
+      const res = await api.post(`/listings/${listing._id}/sold`);
+      setListing(res.data.listing);
+      onSold?.(res.data.listing);
+      onClose();
+    } catch {
+      setMarkingSold(false);
+    }
+  };
+
   const handleContact = async (e) => {
     e.preventDefault();
     setContactStatus('sending');
     try {
-      await api.post(`/listings/${listing._id}/contact`, contact);
+      await api.post(`/listings/${listing._id}/contact`, { message });
       setContactStatus('sent');
-    } catch {
-      setContactStatus('error');
+    } catch (err) {
+      setContactStatus(err.response?.data?.error || 'error');
     }
   };
 
@@ -57,7 +74,20 @@ export default function ListingModal({ listing, onClose }) {
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-800">
           <h2 className="text-lg font-semibold text-white pr-4">{listing.title}</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors text-2xl leading-none shrink-0">✕</button>
+          <div className="flex items-center gap-3 shrink-0">
+            {user && (
+              <button
+                onClick={() => toggleWatch(listing._id)}
+                className="text-xl leading-none transition-colors"
+                title={isWatched ? 'Remove from watchlist' : 'Watch this listing'}
+              >
+                <span className={isWatched ? 'text-yellow-400' : 'text-gray-500 hover:text-yellow-400'}>
+                  {isWatched ? '★' : '☆'}
+                </span>
+              </button>
+            )}
+            <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors text-2xl leading-none">✕</button>
+          </div>
         </div>
 
         <div className="grid md:grid-cols-2 gap-0">
@@ -144,47 +174,42 @@ export default function ListingModal({ listing, onClose }) {
 
             {/* Owner actions */}
             {isOwner ? (
-              <Link
-                to={`/listings/${listing._id}/edit`}
-                onClick={onClose}
-                className="block w-full text-center bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium py-2.5 rounded-xl transition-colors"
-              >
-                Edit Listing
-              </Link>
+              <div className="space-y-2">
+                <Link
+                  to={`/listings/${listing._id}/edit`}
+                  onClick={onClose}
+                  className="block w-full text-center bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium py-2.5 rounded-xl transition-colors"
+                >
+                  Edit Listing
+                </Link>
+                <button
+                  onClick={handleMarkSold}
+                  disabled={markingSold}
+                  className="w-full bg-gray-800 hover:bg-gray-700 disabled:opacity-60 text-gray-300 text-sm font-medium py-2.5 rounded-xl transition-colors border border-gray-700"
+                >
+                  {markingSold ? 'Marking sold…' : 'Mark as Sold'}
+                </button>
+              </div>
             ) : (
               /* Contact form */
               contactStatus === 'sent' ? (
                 <div className="bg-green-900/40 border border-green-700 text-green-300 text-sm rounded-xl p-4 text-center">
                   Message sent! The seller will reply to your email.
                 </div>
-              ) : (
+              ) : user ? (
                 <form onSubmit={handleContact} className="space-y-3">
                   <p className="text-sm font-medium text-white">Contact Seller</p>
-                  <input
-                    required
-                    placeholder="Your name"
-                    value={contact.buyerName}
-                    onChange={e => setContact(c => ({ ...c, buyerName: e.target.value }))}
-                    className="w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm rounded-xl px-3 py-2 focus:outline-none focus:border-gray-500"
-                  />
-                  <input
-                    required
-                    type="email"
-                    placeholder="Your email"
-                    value={contact.buyerEmail}
-                    onChange={e => setContact(c => ({ ...c, buyerEmail: e.target.value }))}
-                    className="w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm rounded-xl px-3 py-2 focus:outline-none focus:border-gray-500"
-                  />
+                  <p className="text-xs text-gray-500">Sending as {user.name}</p>
                   <textarea
                     required
                     rows={3}
-                    placeholder="I'm interested in this listing..."
-                    value={contact.message}
-                    onChange={e => setContact(c => ({ ...c, message: e.target.value }))}
+                    placeholder="I'm interested in this listing…"
+                    value={message}
+                    onChange={e => setMessage(e.target.value)}
                     className="w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm rounded-xl px-3 py-2 focus:outline-none focus:border-gray-500 resize-none"
                   />
-                  {contactStatus === 'error' && (
-                    <p className="text-red-400 text-xs">Something went wrong. Please try again.</p>
+                  {contactStatus !== 'idle' && contactStatus !== 'sending' && (
+                    <p className="text-red-400 text-xs">{typeof contactStatus === 'string' && contactStatus !== 'error' ? contactStatus : 'Something went wrong. Please try again.'}</p>
                   )}
                   <button
                     type="submit"
@@ -194,6 +219,10 @@ export default function ListingModal({ listing, onClose }) {
                     {contactStatus === 'sending' ? 'Sending…' : 'Send Message'}
                   </button>
                 </form>
+              ) : (
+                <div className="text-center text-sm text-gray-500 py-2">
+                  <a href="/login" className="text-red-400 hover:text-red-300">Sign in</a> to contact the seller.
+                </div>
               )
             )}
           </div>

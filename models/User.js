@@ -13,6 +13,7 @@ const userSchema = new mongoose.Schema({
     facebook: { type: String, default: '' },
     instagram: { type: String, default: '' },
   },
+  watchlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Listing' }],
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);

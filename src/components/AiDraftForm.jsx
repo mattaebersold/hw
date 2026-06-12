@@ -1,5 +1,5 @@
-const CONDITIONS = ['Mint in Box', 'Near Mint', 'Good', 'Fair', 'Poor'];
-const RARITIES = ['Common', 'Uncommon', 'Rare', 'Super Rare', 'Ultra Rare'];
+const CONDITIONS = ['In Packaging', 'Near Mint', 'Good', 'Fair', 'Poor'];
+const RARITIES = ['Common', 'Uncommon', 'Rare', 'Super Rare', 'Limited Edition'];
 const BRANDS = ['Hot Wheels', 'Matchbox', 'Johnny Lightning', 'Majorette', 'Greenlight', 'M2 Machines', 'Auto World', 'Other'];
 
 export default function AiDraftForm({ data, onChange }) {
@@ -74,11 +74,6 @@ export default function AiDraftForm({ data, onChange }) {
           <p className="text-white font-semibold">${data.estimatedValueLow} – ${data.estimatedValueHigh}</p>
         </div>
       )}
-
-      <label className="flex items-center gap-3 cursor-pointer">
-        <input type="checkbox" {...checkField('isLimitedEdition')} className="rounded" />
-        <span className="text-sm text-gray-300">Limited Edition</span>
-      </label>
 
       {/* {data.aiNotes && (
         <div className="bg-gray-800/60 border border-gray-700 rounded-xl p-4">

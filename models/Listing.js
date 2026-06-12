@@ -15,15 +15,16 @@ const listingSchema = new mongoose.Schema({
   year: { type: Number },
   condition: {
     type: String,
-    enum: ['Mint in Box', 'Near Mint', 'Good', 'Fair', 'Poor', ''],
+    enum: ['In Packaging', 'Near Mint', 'Good', 'Fair', 'Poor', ''],
     default: '',
   },
   rarity: {
     type: String,
-    enum: ['Common', 'Uncommon', 'Rare', 'Super Rare', 'Ultra Rare', ''],
+    enum: ['Common', 'Uncommon', 'Rare', 'Super Rare', 'Limited Edition', ''],
     default: '',
   },
   isLimitedEdition: { type: Boolean, default: false },
+  isSold: { type: Boolean, default: false },
   estimatedValueLow: { type: Number },
   estimatedValueHigh: { type: Number },
   aiNotes: { type: String, default: '' },

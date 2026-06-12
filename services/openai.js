@@ -18,7 +18,7 @@ STEP 2 — IDENTIFY THE VEHICLE:
 Identify the real-world car: manufacturer (Ford, Chevrolet, Ferrari, etc.) and specific model (Mustang GT500, Camaro SS, 458 Italia, etc.). Use visible body shape, grille design, headlight shape, and any visible badging.
 
 Return ONLY valid JSON, no markdown:
-{"brand":"Hot Wheels|Matchbox|Johnny Lightning|Majorette|Greenlight|M2 Machines|Auto World|Other|Unknown","make":string|null,"model":string|null,"series":string|null,"year":int|null,"isLimitedEdition":bool,"rarity":"Common|Uncommon|Rare|Super Rare|Ultra Rare","condition":"Mint in Box|Near Mint|Good|Fair|Poor","estimatedValueLow":number,"estimatedValueHigh":number,"suggestedTitle":string,"suggestedDescription":"2-3 factual sentences: what it is, series if known, condition, whether still in packaging. No marketing language.","aiNotes":"How brand was identified (packaging/baseplate/visual cues), confidence level if uncertain, any notable variant details"}
+{"brand":"Hot Wheels|Matchbox|Johnny Lightning|Majorette|Greenlight|M2 Machines|Auto World|Other|Unknown","make":string|null,"model":string|null,"series":string|null,"year":int|null,"rarity":"Common|Uncommon|Rare|Super Rare|Limited Edition","condition":"In Packaging|Near Mint|Good|Fair|Poor","estimatedValueLow":number,"estimatedValueHigh":number,"suggestedTitle":string,"suggestedDescription":"2-3 factual sentences: what it is, series if known, condition, whether still in packaging. No marketing language.","aiNotes":"How brand was identified (packaging/baseplate/visual cues), confidence level if uncertain, any notable variant details"}
 
 Use null for unknowns. Values = realistic secondary market USD ranges.`;
 

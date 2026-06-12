@@ -54,8 +54,8 @@ router.post('/login', (req, res, next) => {
 // Current user
 router.get('/me', (req, res) => {
   if (!req.isAuthenticated()) return res.status(401).json({ user: null });
-  const { _id, name, email, profilePhoto, bio, socialLinks } = req.user;
-  res.json({ user: { _id, name, email, profilePhoto, bio, socialLinks } });
+  const { _id, name, email, profilePhoto, bio, socialLinks, watchlist } = req.user;
+  res.json({ user: { _id, name, email, profilePhoto, bio, socialLinks, watchlist: watchlist || [] } });
 });
 
 // Logout

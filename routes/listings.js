@@ -20,9 +20,16 @@ const SORT_MAP = {
 // GET /api/listings — public browse with filters + pagination
 router.get('/', async (req, res) => {
   try {
-    const { brand, make, model, series, condition, rarity, isLimitedEdition, minPrice, maxPrice, sort, page = 1, limit = 24 } = req.query;
+    const { q, brand, make, model, series, condition, rarity, isLimitedEdition, minPrice, maxPrice, sort, page = 1, limit = 24 } = req.query;
 
     const query = { status: 'published' };
+    if (q) {
+      const re = new RegExp(q, 'i');
+      query.$or = [
+        { title: re }, { brand: re }, { make: re }, { model: re },
+        { series: re }, { description: re }, { aiNotes: re },
+      ];
+    }
     if (brand) query.brand = brand;
     if (make) query.make = new RegExp(make, 'i');
     if (model) query.model = new RegExp(model, 'i');
@@ -50,12 +57,56 @@ router.get('/', async (req, res) => {
   }
 });
 
+// GET /api/listings/meta/filters — must be before /:id to avoid route shadowing
+router.get('/meta/filters', async (req, res) => {
+  try {
+    const [brands, series, conditions, rarities] = await Promise.all([
+      Listing.distinct('brand', { status: 'published', brand: { $ne: '' } }),
+      Listing.distinct('series', { status: 'published', series: { $ne: '' } }),
+      Listing.distinct('condition', { status: 'published', condition: { $ne: '' } }),
+      Listing.distinct('rarity', { status: 'published', rarity: { $ne: '' } }),
+    ]);
+    res.json({ brands, series, conditions, rarities });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/listings/:id/sold — mark sold (owner only)
+router.post('/:id/sold', requireAuth, async (req, res) => {
+  try {
+    const listing = await Listing.findById(req.params.id);
+    if (!listing) return res.status(404).json({ error: 'Not found' });
+    if (!listing.seller.equals(req.user._id)) return res.status(403).json({ error: 'Forbidden' });
+    listing.status = 'draft';
+    listing.isSold = true;
+    await listing.save();
+    res.json({ listing });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/listings/:id/relist — re-publish (owner only)
+router.post('/:id/relist', requireAuth, async (req, res) => {
+  try {
+    const listing = await Listing.findById(req.params.id);
+    if (!listing) return res.status(404).json({ error: 'Not found' });
+    if (!listing.seller.equals(req.user._id)) return res.status(403).json({ error: 'Forbidden' });
+    listing.status = 'published';
+    listing.isSold = false;
+    await listing.save();
+    res.json({ listing });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // GET /api/listings/:id — public
 router.get('/:id', async (req, res) => {
   try {
     const listing = await Listing.findById(req.params.id).populate('seller', 'name profilePhoto email');
     if (!listing) return res.status(404).json({ error: 'Not found' });
-    // drafts only visible to owner
     if (listing.status === 'draft' && (!req.user || !req.user._id.equals(listing.seller._id))) {
       return res.status(404).json({ error: 'Not found' });
     }
@@ -119,29 +170,20 @@ router.post('/:id/photos', requireAuth, upload.single('photo'), async (req, res)
 });
 
 // POST /api/listings/:id/contact — buyer contacts seller
-router.post('/:id/contact', contactLimiter, async (req, res) => {
+router.post('/:id/contact', requireAuth, contactLimiter, async (req, res) => {
   try {
     const listing = await Listing.findById(req.params.id).populate('seller', 'name email');
     if (!listing || listing.status !== 'published') return res.status(404).json({ error: 'Not found' });
-    const { buyerName, buyerEmail, message } = req.body;
-    if (!buyerName || !buyerEmail || !message) return res.status(400).json({ error: 'All fields required' });
-    await sendContactEmail({ listing, buyerName, buyerEmail, message });
+    if (!listing.seller.email) return res.status(422).json({ error: 'Seller has no contact email on file.' });
+    const { message } = req.body;
+    if (!message?.trim()) return res.status(400).json({ error: 'Message is required' });
+    await sendContactEmail({
+      listing,
+      buyerName: req.user.name,
+      buyerEmail: req.user.email,
+      message,
+    });
     res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// GET /api/listings/meta/filters — return distinct filter values for UI dropdowns
-router.get('/meta/filters', async (req, res) => {
-  try {
-    const [brands, series, conditions, rarities] = await Promise.all([
-      Listing.distinct('brand', { status: 'published', brand: { $ne: '' } }),
-      Listing.distinct('series', { status: 'published', series: { $ne: '' } }),
-      Listing.distinct('condition', { status: 'published', condition: { $ne: '' } }),
-      Listing.distinct('rarity', { status: 'published', rarity: { $ne: '' } }),
-    ]);
-    res.json({ brands, series, conditions, rarities });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

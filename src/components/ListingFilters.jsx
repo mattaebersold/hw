@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import api from '../services/api';
 
-const CONDITIONS = ['Mint in Box', 'Near Mint', 'Good', 'Fair', 'Poor'];
-const RARITIES = ['Common', 'Uncommon', 'Rare', 'Super Rare', 'Ultra Rare'];
+const CONDITIONS = ['In Packaging', 'Near Mint', 'Good', 'Fair', 'Poor'];
+const RARITIES = ['Common', 'Uncommon', 'Rare', 'Super Rare', 'Limited Edition'];
 const SORTS = [
   { value: 'newest', label: 'Newest First' },
   { value: 'oldest', label: 'Oldest First' },
@@ -25,7 +25,6 @@ export default function ListingFilters({ filters, onChange }) {
   return (
     <aside className="space-y-5">
       <div className="flex items-center justify-between">
-        <h2 className="font-semibold text-white">Filters</h2>
         {hasFilters && (
           <button onClick={clear} className="text-xs text-red-400 hover:text-red-300 transition-colors">Clear all</button>
         )}
@@ -33,7 +32,6 @@ export default function ListingFilters({ filters, onChange }) {
 
       {/* Sort */}
       <div>
-        <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Sort by</label>
         <select
           value={filters.sort || 'newest'}
           onChange={e => set('sort', e.target.value)}
@@ -100,18 +98,6 @@ export default function ListingFilters({ filters, onChange }) {
         onChange={v => set('rarity', v)}
       />
 
-      {/* Limited Edition */}
-      <div>
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={filters.isLimitedEdition === 'true'}
-            onChange={e => set('isLimitedEdition', e.target.checked ? 'true' : '')}
-            className="rounded"
-          />
-          <span className="text-sm text-gray-300">Limited Edition only</span>
-        </label>
-      </div>
     </aside>
   );
 }
@@ -125,7 +111,7 @@ function FilterGroup({ label, options, value, onChange }) {
           <button
             key={opt}
             onClick={() => onChange(value === opt ? '' : opt)}
-            className={`text-xs px-3 py-1 rounded-full border transition-colors ${
+            className={`text-[10px] font-bold px-2 py-1 rounded-full border transition-colors ${
               value === opt
                 ? 'bg-red-600 border-red-600 text-white'
                 : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-500 hover:text-gray-200'

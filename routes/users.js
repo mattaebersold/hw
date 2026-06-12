@@ -24,6 +24,47 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Own listings including drafts (must be before /:id)
+router.get('/me/listings', requireAuth, async (req, res) => {
+  try {
+    const listings = await Listing.find({ seller: req.user._id }).sort({ updatedAt: -1 });
+    res.json({ listings });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Watchlist — get populated listings
+router.get('/me/watchlist', requireAuth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).populate({
+      path: 'watchlist',
+      populate: { path: 'seller', select: 'name profilePhoto' },
+    });
+    res.json({ listings: user.watchlist.filter(l => l && l.status === 'published') });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Toggle watchlist item
+router.post('/me/watchlist/:listingId', requireAuth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    const id = req.params.listingId;
+    const idx = user.watchlist.findIndex(w => w.toString() === id);
+    if (idx >= 0) {
+      user.watchlist.splice(idx, 1);
+    } else {
+      user.watchlist.push(id);
+    }
+    await user.save();
+    res.json({ watchlist: user.watchlist });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Public profile
 router.get('/:id', async (req, res) => {
   try {
