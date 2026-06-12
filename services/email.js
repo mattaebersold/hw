@@ -24,7 +24,12 @@ const sendContactEmail = async ({ listing, buyerName, buyerEmail, message }) => 
     `,
   };
 
-  await sgMail.send(msg);
+  try {
+    await sgMail.send(msg);
+  } catch (err) {
+    const detail = err.response?.body?.errors?.[0]?.message;
+    throw new Error(detail || err.message || 'Email delivery failed');
+  }
 };
 
 module.exports = { sendContactEmail };

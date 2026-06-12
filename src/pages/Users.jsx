@@ -26,12 +26,12 @@ export default function Users() {
             className="flex items-center gap-4 bg-gray-900 border border-gray-800 hover:border-gray-600 rounded-2xl px-5 py-4 transition-colors group"
           >
             <img
-              src={u.profilePhoto || `https://api.dicebear.com/7.x/initials/svg?seed=${u.name}`}
-              alt={u.name}
+              src={u.profilePhoto || `https://api.dicebear.com/7.x/initials/svg?seed=${u._id}`}
+              alt={u.username}
               className="w-12 h-12 rounded-full object-cover border border-gray-700 group-hover:border-gray-500 transition-colors flex-shrink-0"
             />
             <div className="flex-1 min-w-0">
-              <p className="text-white font-medium">{u.name}</p>
+              <p className="text-white font-medium">@{u.username}</p>
               <p className="text-gray-500 text-sm">
                 {u.listingCount === 0 ? 'No listings' : `${u.listingCount} listing${u.listingCount !== 1 ? 's' : ''}`}
               </p>

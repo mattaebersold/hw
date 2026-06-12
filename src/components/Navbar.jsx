@@ -29,11 +29,11 @@ export default function Navbar() {
             <>
               <Link to={`/profile/${user._id}`} className="flex items-center gap-2 group">
                 <img
-                  src={user.profilePhoto || `https://api.dicebear.com/7.x/initials/svg?seed=${user.name}`}
-                  alt={user.name}
+                  src={user.profilePhoto || `https://api.dicebear.com/7.x/initials/svg?seed=${user._id}`}
+                  alt={user.username}
                   className="w-8 h-8 rounded-full object-cover border border-gray-700 group-hover:border-gray-500 transition-colors"
                 />
-                <span className="text-sm text-gray-300 group-hover:text-white hidden sm:inline transition-colors">{user.name}</span>
+                <span className="text-sm text-gray-300 group-hover:text-white hidden sm:inline transition-colors">@{user.username}</span>
               </Link>
               <Link
                 to="/create"

@@ -97,15 +97,15 @@ export default function Profile() {
             <ProfilePhotoUpload user={profile} onUpdate={setProfile} />
           ) : (
             <img
-              src={profile.profilePhoto || `https://api.dicebear.com/7.x/initials/svg?seed=${profile.name}`}
-              alt={profile.name}
+              src={profile.profilePhoto || `https://api.dicebear.com/7.x/initials/svg?seed=${profile._id}`}
+              alt={profile.username}
               className="w-24 h-24 rounded-full object-cover border-2 border-gray-700"
             />
           )}
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between flex-wrap gap-2">
-              <h1 className="text-2xl font-bold text-white">{profile.name}</h1>
+              <h1 className="text-2xl font-bold text-white">@{profile.username}</h1>
               {isOwn && !editing && (
                 <div className="flex items-center gap-2">
                   <button

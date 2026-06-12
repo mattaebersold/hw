@@ -26,6 +26,10 @@ router.post('/', requireAuth, upload.single('photo'), async (req, res) => {
 
     const aiResult = await analyzeCarPhoto(resized, 'image/jpeg');
 
+    if (!aiResult.isModelCar) {
+      return res.status(422).json({ error: 'This is not a model car, please try again.' });
+    }
+
     // Fetch eBay prices in parallel after we have the AI identification
     const ebayPrices = await searchPrices(aiResult).catch(() => null);
 

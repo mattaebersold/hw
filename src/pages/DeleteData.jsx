@@ -50,7 +50,7 @@ export default function DeleteData() {
         <div className="bg-gray-800 rounded-xl p-4 space-y-2 text-sm text-gray-300">
           <p className="font-medium text-white">This will permanently delete:</p>
           <ul className="space-y-1 text-gray-400">
-            <li>• Your profile ({user.name})</li>
+            <li>• Your profile (@{user.username || user.email})</li>
             <li>• All your listings</li>
             <li>• All your account data</li>
           </ul>

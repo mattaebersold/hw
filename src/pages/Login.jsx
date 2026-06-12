@@ -8,7 +8,7 @@ export default function Login() {
   const { refreshUser } = useAuth();
   const navigate = useNavigate();
   const [mode, setMode] = useState('login'); // 'login' | 'register'
-  const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '' });
+  const [form, setForm] = useState({ email: '', password: '', confirm: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -28,13 +28,17 @@ export default function Login() {
     setLoading(true);
     try {
       const endpoint = mode === 'register' ? '/auth/register' : '/auth/login';
-      await axios.post(`${serverUrl}${endpoint}`, {
-        name: form.name,
+      const res = await axios.post(`${serverUrl}${endpoint}`, {
         email: form.email,
         password: form.password,
       }, { withCredentials: true });
       await refreshUser();
-      navigate('/');
+      // After register there's no username yet — OnboardingGuard will redirect
+      if (mode === 'register' || !res.data.user?.username) {
+        navigate('/onboarding', { replace: true });
+      } else {
+        navigate('/');
+      }
     } catch (err) {
       setError(err.response?.data?.error || 'Something went wrong');
     } finally {
@@ -70,18 +74,11 @@ export default function Login() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-3">
-          {mode === 'register' && (
-            <input
-              required
-              placeholder="Your name"
-              {...field('name')}
-              className={inputCls}
-            />
-          )}
           <input
             required
             type="email"
             placeholder="Email address"
+            autoComplete="email"
             {...field('email')}
             className={inputCls}
           />
@@ -90,6 +87,7 @@ export default function Login() {
             type="password"
             placeholder="Password"
             minLength={8}
+            autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
             {...field('password')}
             className={inputCls}
           />
@@ -98,6 +96,7 @@ export default function Login() {
               required
               type="password"
               placeholder="Confirm password"
+              autoComplete="new-password"
               {...field('confirm')}
               className={inputCls}
             />

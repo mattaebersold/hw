@@ -47,7 +47,7 @@ router.get('/', async (req, res) => {
     const skip = (Number(page) - 1) * Number(limit);
 
     const [listings, total] = await Promise.all([
-      Listing.find(query).sort(sortObj).skip(skip).limit(Number(limit)).populate('seller', 'name profilePhoto'),
+      Listing.find(query).sort(sortObj).skip(skip).limit(Number(limit)).populate('seller', 'username profilePhoto'),
       Listing.countDocuments(query),
     ]);
 
@@ -105,7 +105,7 @@ router.post('/:id/relist', requireAuth, async (req, res) => {
 // GET /api/listings/:id — public
 router.get('/:id', async (req, res) => {
   try {
-    const listing = await Listing.findById(req.params.id).populate('seller', 'name profilePhoto email');
+    const listing = await Listing.findById(req.params.id).populate('seller', 'username profilePhoto email');
     if (!listing) return res.status(404).json({ error: 'Not found' });
     if (listing.status === 'draft' && (!req.user || !req.user._id.equals(listing.seller._id))) {
       return res.status(404).json({ error: 'Not found' });
@@ -172,14 +172,14 @@ router.post('/:id/photos', requireAuth, upload.single('photo'), async (req, res)
 // POST /api/listings/:id/contact — buyer contacts seller
 router.post('/:id/contact', requireAuth, contactLimiter, async (req, res) => {
   try {
-    const listing = await Listing.findById(req.params.id).populate('seller', 'name email');
+    const listing = await Listing.findById(req.params.id).populate('seller', 'username email');
     if (!listing || listing.status !== 'published') return res.status(404).json({ error: 'Not found' });
     if (!listing.seller.email) return res.status(422).json({ error: 'Seller has no contact email on file.' });
     const { message } = req.body;
     if (!message?.trim()) return res.status(400).json({ error: 'Message is required' });
     await sendContactEmail({
       listing,
-      buyerName: req.user.name,
+      buyerName: req.user.username || req.user.email,
       buyerEmail: req.user.email,
       message,
     });

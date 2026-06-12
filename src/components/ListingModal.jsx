@@ -17,7 +17,7 @@ export default function ListingModal({ listing: initialListing, onClose, onSold 
   const overlayRef = useRef(null);
   const [listing, setListing] = useState(initialListing);
   const [photoIdx, setPhotoIdx] = useState(0);
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState("I'm interested in this listing…");
   const [contactStatus, setContactStatus] = useState('idle');
   const [markingSold, setMarkingSold] = useState(false);
   const isOwner = user && listing.seller && user._id === (listing.seller._id || listing.seller);
@@ -57,7 +57,8 @@ export default function ListingModal({ listing: initialListing, onClose, onSold 
       await api.post(`/listings/${listing._id}/contact`, { message });
       setContactStatus('sent');
     } catch (err) {
-      setContactStatus(err.response?.data?.error || 'error');
+      const msg = err.response?.data?.error || '';
+      setContactStatus(msg || 'Failed to send. Please try again.');
     }
   };
 
@@ -120,7 +121,7 @@ export default function ListingModal({ listing: initialListing, onClose, onSold 
             {/* Price & tags */}
             <div className="space-y-3">
               {listing.price != null && (
-                <p className="text-3xl font-bold text-red-400">${listing.price}</p>
+                <p className="text-3xl font-bold text-green-400">${listing.price}</p>
               )}
               {listing.estimatedValueLow != null && (
                 <p className="text-sm text-gray-500">
@@ -154,19 +155,19 @@ export default function ListingModal({ listing: initialListing, onClose, onSold 
             )} */}
 
             {/* Seller */}
-            {listing.seller?.name && (
+            {listing.seller?._id && (
               <Link
                 to={`/profile/${listing.seller._id}`}
                 onClick={onClose}
                 className="flex items-center gap-3 p-3 bg-gray-800 rounded-xl hover:bg-gray-750 transition-colors"
               >
                 <img
-                  src={listing.seller.profilePhoto || `https://api.dicebear.com/7.x/initials/svg?seed=${listing.seller.name}`}
+                  src={listing.seller.profilePhoto || `https://api.dicebear.com/7.x/initials/svg?seed=${listing.seller._id}`}
                   alt=""
                   className="w-10 h-10 rounded-full object-cover"
                 />
                 <div>
-                  <p className="text-white text-sm font-medium">{listing.seller.name}</p>
+                  <p className="text-white text-sm font-medium">{listing.seller.username ? `@${listing.seller.username}` : 'Collector'}</p>
                   <p className="text-gray-400 text-xs">View profile</p>
                 </div>
               </Link>
@@ -199,17 +200,16 @@ export default function ListingModal({ listing: initialListing, onClose, onSold 
               ) : user ? (
                 <form onSubmit={handleContact} className="space-y-3">
                   <p className="text-sm font-medium text-white">Contact Seller</p>
-                  <p className="text-xs text-gray-500">Sending as {user.name}</p>
+                  <p className="text-xs text-gray-500">Sending as @{user.username}</p>
                   <textarea
                     required
                     rows={3}
-                    placeholder="I'm interested in this listing…"
                     value={message}
                     onChange={e => setMessage(e.target.value)}
                     className="w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm rounded-xl px-3 py-2 focus:outline-none focus:border-gray-500 resize-none"
                   />
                   {contactStatus !== 'idle' && contactStatus !== 'sending' && (
-                    <p className="text-red-400 text-xs">{typeof contactStatus === 'string' && contactStatus !== 'error' ? contactStatus : 'Something went wrong. Please try again.'}</p>
+                    <p className="text-red-400 text-xs">{contactStatus}</p>
                   )}
                   <button
                     type="submit"

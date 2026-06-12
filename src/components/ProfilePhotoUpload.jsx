@@ -29,8 +29,8 @@ export default function ProfilePhotoUpload({ user, onUpdate }) {
   return (
     <div className="relative group w-fit">
       <img
-        src={user.profilePhoto || `https://api.dicebear.com/7.x/initials/svg?seed=${user.name}`}
-        alt={user.name}
+        src={user.profilePhoto || `https://api.dicebear.com/7.x/initials/svg?seed=${user._id}`}
+        alt={user.username}
         className="w-24 h-24 rounded-full object-cover border-2 border-gray-700"
       />
       <button

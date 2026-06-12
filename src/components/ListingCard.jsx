@@ -63,20 +63,18 @@ export default function ListingCard({ listing, onClick }) {
         <div className="flex items-start justify-between gap-2">
           <h3 className="font-semibold text-white text-sm leading-tight line-clamp-2">{listing.title || 'Untitled'}</h3>
           {listing.price != null && (
-            <span className="text-red-400 font-bold text-sm whitespace-nowrap">${listing.price}</span>
+            <span className="text-green-400 font-bold text-sm whitespace-nowrap">${listing.price}</span>
           )}
         </div>
-
-        
 
         {listing.seller && (
           <div className="flex items-center gap-1.5 pt-1 border-t border-gray-800">
             <img
-              src={listing.seller.profilePhoto || `https://api.dicebear.com/7.x/initials/svg?seed=${listing.seller.name}`}
+              src={listing.seller.profilePhoto || `https://api.dicebear.com/7.x/initials/svg?seed=${listing.seller._id}`}
               alt=""
               className="w-5 h-5 rounded-full object-cover"
             />
-            <span className="text-gray-500 text-xs truncate">{listing.seller.name}</span>
+            <span className="text-gray-500 text-xs truncate">{listing.seller.username ? `@${listing.seller.username}` : 'Collector'}</span>
           </div>
         )}
       </div>

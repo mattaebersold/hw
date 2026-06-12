@@ -10,7 +10,7 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 *
 // All users (public)
 router.get('/', async (req, res) => {
   try {
-    const users = await User.find().select('name profilePhoto createdAt').sort({ createdAt: -1 });
+    const users = await User.find({ username: { $exists: true, $ne: null } }).select('username profilePhoto createdAt').sort({ createdAt: -1 });
     const ids = users.map(u => u._id);
     const counts = await Listing.aggregate([
       { $match: { seller: { $in: ids }, status: 'published' } },
@@ -39,7 +39,7 @@ router.get('/me/watchlist', requireAuth, async (req, res) => {
   try {
     const user = await User.findById(req.user._id).populate({
       path: 'watchlist',
-      populate: { path: 'seller', select: 'name profilePhoto' },
+      populate: { path: 'seller', select: 'username profilePhoto' },
     });
     res.json({ listings: user.watchlist.filter(l => l && l.status === 'published') });
   } catch (err) {
@@ -85,7 +85,7 @@ router.patch('/me', requireAuth, async (req, res) => {
       req.user._id,
       { bio, socialLinks },
       { new: true, runValidators: true }
-    ).select('-googleId -facebookId');
+    ).select('-googleId -facebookId -passwordHash');
     res.json({ user });
   } catch (err) {
     res.status(500).json({ error: err.message });
