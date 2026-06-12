@@ -65,7 +65,7 @@ export default function CreateListing() {
       } : null);
       setStep('confirm');
     } catch (err) {
-      setAnalyzeError(err.response?.data?.error || 'AI analysis failed. Please try again.');
+      setAnalyzeError(err.response?.data?.error || 'Failed. Please try again.');
     } finally {
       setAnalyzing(false);
     }
@@ -96,7 +96,7 @@ export default function CreateListing() {
   return (
     <div className="max-w-xl mx-auto">
       <h1 className="text-2xl font-bold text-white mb-2">List a Car</h1>
-      <p className="text-gray-400 text-sm mb-8">Take or upload a photo — AI will identify and pre-fill the details.</p>
+      <p className="text-gray-400 text-sm mb-8">Take or upload a photo</p>
 
       {step === 'photo' && (
         <>
@@ -118,7 +118,7 @@ export default function CreateListing() {
       {step === 'confirm' && (
         <div className="space-y-6">
           <div className="flex items-center justify-between">
-            <p className="text-green-400 text-sm font-medium">✓ AI analysis complete — edit anything below</p>
+            <p className="text-green-400 text-sm font-medium">Complete</p>
             <button
               onClick={() => { setStep('photo'); setDraft({}); setEbayInfo(null); }}
               className="text-gray-400 hover:text-white text-sm transition-colors"

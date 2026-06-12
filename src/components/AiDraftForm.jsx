@@ -70,17 +70,11 @@ export default function AiDraftForm({ data, onChange }) {
 
       {(data.estimatedValueLow || data.estimatedValueHigh) && (
         <div className="bg-gray-800 rounded-xl p-4 space-y-1">
-          <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">AI Estimated Value</p>
+          <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">Estimated Value</p>
           <p className="text-white font-semibold">${data.estimatedValueLow} – ${data.estimatedValueHigh}</p>
         </div>
       )}
 
-      {/* {data.aiNotes && (
-        <div className="bg-gray-800/60 border border-gray-700 rounded-xl p-4">
-          <p className="text-xs text-gray-400 font-medium mb-1">AI Notes</p>
-          <p className="text-gray-300 text-sm">{data.aiNotes}</p>
-        </div>
-      )} */}
     </div>
   );
 }

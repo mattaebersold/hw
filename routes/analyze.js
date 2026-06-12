@@ -30,7 +30,7 @@ router.post('/', requireAuth, upload.single('photo'), async (req, res) => {
       return res.status(422).json({ error: 'This is not a model car, please try again.' });
     }
 
-    // Fetch eBay prices in parallel after we have the AI identification
+    // Fetch eBay prices in parallel after we have the
     const ebayPrices = await searchPrices(aiResult).catch(() => null);
 
     const result = {
@@ -47,7 +47,7 @@ router.post('/', requireAuth, upload.single('photo'), async (req, res) => {
     res.json({ result });
   } catch (err) {
     if (err instanceof SyntaxError) {
-      return res.status(502).json({ error: 'AI returned invalid response. Please try again.' });
+      return res.status(502).json({ error: 'Invalid response. Please try again.' });
     }
     res.status(500).json({ error: err.message });
   }
